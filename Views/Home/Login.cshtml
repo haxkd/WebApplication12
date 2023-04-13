@@ -1,0 +1,13 @@
+﻿<h1>Register Page</h1>
+
+@Html.ValidationSummary()
+
+@ViewBag.msg
+
+<form method="post">
+    Email : <input type="email" name="email" /><br /><br />
+    Password : <input type="password" name="password" /><br /><br />
+    <input type="submit" value="send" />
+</form>
+
+<a href="/Home/Register">Go to Register?</a>

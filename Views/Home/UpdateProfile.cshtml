@@ -1,0 +1,18 @@
+﻿@model WebApplication12.Models.Student
+<h1>UpdateProfile</h1>
+
+
+
+
+<form method="post" enctype="multipart/form-data">
+
+    Name : <input type="text" name="name" value="@Model.name" /> <br /><br />
+    Email : <input type="email" name="email" value="@Model.email" /> <br /><br />
+    Password : <input type="password" name="password" value="@Model.password" /> <br /><br />
+    dob : <input type="date" name="dob" value="@Model.dob" /> <br /><br />
+    phone : <input type="text" name="phone" value="@Model.phone" /> <br /><br />
+    Address : <textarea name="address">@Model.address</textarea> <br /><br />
+    Image : <input type="file" name="fileimage" /> <br /><br />
+    <input type="submit" value="UPDATE" />
+
+</form>
