@@ -16,17 +16,37 @@ namespace WebApplication12.Controllers
         SqlConnection _connection = new SqlConnection("Data Source=DESKTOP-MBN74RR;Initial Catalog=Crud;Integrated Security=True");
         public ActionResult Index()
         {
+
+            HttpCookie ck = new HttpCookie("user");
+            ck["user_id"] = "xyz";
+            //ck.Expires = DateTime.Now.AddDays(10);
+            ck.Expires = DateTime.Now.AddYears(10000000);
+            Response.Cookies.Add(ck);
+
+
+            Request.Cookies["name"].ToString();
+
+
             return View();
         }
 
         public ActionResult Login()
         {
+            if (Session["user_id"] != null)
+            {
+                return RedirectToAction("UserProfile");
+            }
+
             return View();
         }
 
         [HttpPost]
         public ActionResult Login(LoginStudent login)
         {
+            if (Session["user_id"] != null)
+            {
+                return RedirectToAction("UserProfile");
+            }
             if (ModelState.IsValid)
             {
                 string checkEmail = $"SELECT id,email,password,count from Student where email = '{login.email}'";
@@ -66,12 +86,20 @@ namespace WebApplication12.Controllers
         }
         public ActionResult Register()
         {
+            if (Session["user_id"] != null)
+            {
+                return RedirectToAction("UserProfile");
+            }
             return View();
         }
         [HttpPost]
         public ActionResult Register(RegStudent register)
         {
-            if(ModelState.IsValid)
+            if (Session["user_id"] != null)
+            {
+                return RedirectToAction("UserProfile");
+            }
+            if (ModelState.IsValid)
             {
                 string checkEmail = $"SELECT email from Student where email = '{register.email}'";
                 _connection.Open();
@@ -97,6 +125,11 @@ namespace WebApplication12.Controllers
 
         public ActionResult UserProfile()
         {
+            if (Session["user_id"] == null)
+            {
+                return RedirectToAction("login");
+            }
+
             Response.Write(Session["user_id"].ToString());
 
             return View();
@@ -104,6 +137,11 @@ namespace WebApplication12.Controllers
 
         public ActionResult UpdateProfile()
         {
+            if (Session["user_id"] == null)
+            {
+                return RedirectToAction("login");
+            }
+
             string user_id = Session["user_id"].ToString();
             _connection.Open();
             SqlCommand cmd = new SqlCommand($"select * from Student where id={user_id}", _connection);
@@ -114,7 +152,7 @@ namespace WebApplication12.Controllers
                 id = dr["id"].ToString(),
                 name = dr["name"].ToString(),
                 email = dr["email"].ToString(),
-                password = dr["password"].ToString(),
+                
                 phone = dr["phone"].ToString(),
                 dob = dr["dob"].ToString(),
                 image = dr["image"].ToString(),
@@ -127,27 +165,54 @@ namespace WebApplication12.Controllers
         [HttpPost]
         public ActionResult UpdateProfile(UpdateStudent updateStudent)
         {
+            if (Session["user_id"] == null)
+            {
+                return RedirectToAction("login");
+            }
+
             string user_id = Session["user_id"].ToString();
 
             string name = updateStudent.name;
             string email = updateStudent.email;
-            string password = updateStudent.password;
+            string password = "";
             string dob = updateStudent.dob;
             string address = updateStudent.address;
             string phone = updateStudent.phone;
+            string storepath = "";
 
-
-            string folder = "~/images";
-            string filename = updateStudent.fileimage.FileName;
-            string savepath = Path.Combine(Server.MapPath(folder),filename);
-            updateStudent.fileimage.SaveAs(savepath);
-            string storepath = folder+"/"+ filename;
-
-
-            string query = $"UPDATE Student SET name='{name}',email='{email}',password='{password}',dob='{dob}',address='{address}',phone='{phone}',image='{storepath}' where id= '{user_id}'";
+            string query = $"select * from Student where id= '{user_id}'";
             _connection.Open();
 
-            new SqlCommand(query,_connection).ExecuteNonQuery();
+
+            SqlDataReader dr = new SqlCommand(query, _connection).ExecuteReader();
+            dr.Read();
+            password = dr["password"].ToString();
+            storepath = dr["image"].ToString();
+
+            if (updateStudent.password != null)
+            {
+                if (updateStudent.password.Trim() != "")
+                {
+                    password = updateStudent.password;
+                }
+
+            }
+
+            if (updateStudent.fileimage != null)
+            {
+                string folder = "~/images";
+                string filename = updateStudent.fileimage.FileName;
+                string savepath = Path.Combine(Server.MapPath(folder), filename);
+                updateStudent.fileimage.SaveAs(savepath);
+                storepath = folder + "/" + filename;
+            }
+            _connection.Close();
+
+
+
+            string updatequrey = $"UPDATE Student SET name='{name}',email='{email}',password='{password}',dob='{dob}',address='{address}',phone='{phone}',image='{storepath}' where id= '{user_id}'";
+            _connection.Open();
+            new SqlCommand(updatequrey,_connection).ExecuteNonQuery();
 
 
             return RedirectToAction("userprofile");
