@@ -184,6 +184,8 @@
     <Content Include="Views\Home\Login.cshtml" />
     <Content Include="Views\Home\UserProfile.cshtml" />
     <Content Include="Views\Home\UpdateProfile.cshtml" />
+    <Content Include="Views\Home\ForgetPassword.cshtml" />
+    <Content Include="Views\Home\Reset.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

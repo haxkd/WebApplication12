@@ -8,6 +8,9 @@ using System.Data.SqlClient;
 using System.Data;
 using System.IO;
 using Microsoft.Win32;
+using System.Net.Mail;
+using System.Text;
+using System.Net;
 
 namespace WebApplication12.Controllers
 {
@@ -16,17 +19,6 @@ namespace WebApplication12.Controllers
         SqlConnection _connection = new SqlConnection("Data Source=DESKTOP-MBN74RR;Initial Catalog=Crud;Integrated Security=True");
         public ActionResult Index()
         {
-
-            HttpCookie ck = new HttpCookie("user");
-            ck["user_id"] = "xyz";
-            //ck.Expires = DateTime.Now.AddDays(10);
-            ck.Expires = DateTime.Now.AddYears(10000000);
-            Response.Cookies.Add(ck);
-
-
-            Request.Cookies["name"].ToString();
-
-
             return View();
         }
 
@@ -55,16 +47,16 @@ namespace WebApplication12.Controllers
                 SqlDataReader dr = cmd.ExecuteReader();
                 if (dr.Read())
                 {
-                    if(login.password == dr["password"].ToString())
+                    if (login.password == dr["password"].ToString())
                     {
-                       string user_id = dr["id"].ToString();
+                        string user_id = dr["id"].ToString();
                         Session["user_id"] = user_id;
                         if (dr["count"].ToString() == "0")
                         {
                             string updateCount = $"update Student set count = 1 where id={user_id}";
                             _connection.Close();
                             _connection.Open();
-                            new SqlCommand(updateCount,_connection).ExecuteNonQuery();
+                            new SqlCommand(updateCount, _connection).ExecuteNonQuery();
                             return RedirectToAction("UpdateProfile");
                         }
                         else
@@ -104,7 +96,6 @@ namespace WebApplication12.Controllers
                 string checkEmail = $"SELECT email from Student where email = '{register.email}'";
                 _connection.Open();
                 SqlCommand cmd = new SqlCommand(checkEmail, _connection);
-
                 if (!cmd.ExecuteReader().Read())
                 {
                     _connection.Close();
@@ -114,11 +105,13 @@ namespace WebApplication12.Controllers
                     cmd2.ExecuteNonQuery();
                     ViewBag.msg = "registeration successfully";
                     _connection.Close();
+                    //Session["user_id"] = null;
+                    //return RedirectToAction("UserProfile");
                 }
                 else
                 {
                     ModelState.AddModelError("email", "Email Already exist");
-                }               
+                }
             }
             return View();
         }
@@ -130,9 +123,21 @@ namespace WebApplication12.Controllers
                 return RedirectToAction("login");
             }
 
-            Response.Write(Session["user_id"].ToString());
-
-            return View();
+            string id = Session["user_id"].ToString();
+            _connection.Open();
+            SqlDataReader dr = new SqlCommand($"SELECT * FROM Student WHERE id={id}", _connection).ExecuteReader();
+            dr.Read();
+            Student student = new Student()
+            {
+                id = dr["id"].ToString(),
+                name = dr["name"].ToString(),
+                email = dr["email"].ToString(),
+                dob = dr["dob"].ToString(),
+                image = dr["image"].ToString(),
+                address = dr["address"].ToString(),
+                phone = dr["address"].ToString(),
+            };
+            return View(student);
         }
 
         public ActionResult UpdateProfile()
@@ -152,7 +157,7 @@ namespace WebApplication12.Controllers
                 id = dr["id"].ToString(),
                 name = dr["name"].ToString(),
                 email = dr["email"].ToString(),
-                
+
                 phone = dr["phone"].ToString(),
                 dob = dr["dob"].ToString(),
                 image = dr["image"].ToString(),
@@ -212,13 +217,114 @@ namespace WebApplication12.Controllers
 
             string updatequrey = $"UPDATE Student SET name='{name}',email='{email}',password='{password}',dob='{dob}',address='{address}',phone='{phone}',image='{storepath}' where id= '{user_id}'";
             _connection.Open();
-            new SqlCommand(updatequrey,_connection).ExecuteNonQuery();
+            new SqlCommand(updatequrey, _connection).ExecuteNonQuery();
 
 
             return RedirectToAction("userprofile");
         }
 
-
-
+        public ActionResult ForgetPassword()
+        {
+            return View();
         }
+
+        [HttpPost]
+        public ActionResult ForgetPassword(string email)
+        {
+            string checkQuery = $"SELECT * FROM Student where email='{email}'";
+            _connection.Open();
+            SqlCommand cmd = new SqlCommand(checkQuery, _connection);
+            SqlDataReader rd = cmd.ExecuteReader();
+            if (rd.Read())
+            {
+                string user_id = rd["id"].ToString();
+                Random random = new Random();
+                const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+                string key = "";
+
+
+                string checkKey = $"SELECT * FROM Forget where user_id='{user_id}'";
+                SqlCommand cmd2 = new SqlCommand(checkKey, _connection);
+                SqlDataReader dr2 = cmd2.ExecuteReader();
+                if (dr2.Read())
+                {
+                    key = dr2["fkey"].ToString();
+                }
+                else
+                {
+                    key = new string(Enumerable.Repeat(chars, 8).Select(s => s[random.Next(s.Length)]).ToArray());
+                    string query = $"INSERT INTO Forget(fkey,user_id) VALUES ('{key}','{user_id}')";
+                    _connection.Close();
+                    _connection.Open();
+                    new SqlCommand(query, _connection).ExecuteNonQuery();
+                }
+
+
+
+
+                string link = $"https://localhost:44308/Home/Reset?key={key}";
+
+
+
+                MailMessage message = new MailMessage("nitish0078@gmail.com", email);
+                message.Subject = "Reset Your Password";
+                message.Body = link;
+                message.BodyEncoding = Encoding.UTF8;
+                message.IsBodyHtml = true;
+                SmtpClient client = new SmtpClient("smtp.gmail.com", 587); //Gmail smtp               
+                client.EnableSsl = true;
+                client.UseDefaultCredentials = false;
+                client.Credentials = new NetworkCredential("nitish0078@gmail.com", "aeujspxgcwxdwpxi");
+                client.Send(message);
+
+                ViewBag.msg = "mail sent please check it to reset";
+
+            }
+            else
+            {
+                ViewBag.msg = "email not exist";
+            }
+            return View();
+        }
+
+
+        public ActionResult Reset(string key)
+        {
+            _connection.Open();
+            string checkKey = $"SELECT * FROM Forget where fkey='{key}'";
+            SqlCommand cmd2 = new SqlCommand(checkKey, _connection);
+            SqlDataReader dr2 = cmd2.ExecuteReader();
+            if (!dr2.Read())
+            {
+                ViewBag.msg = "Link not valid";
+                return RedirectToAction("ForgetPassword");
+            }
+
+            Session["user_id"] = dr2["user_id"].ToString();
+
+            return View();
+        }
+        [HttpPost]
+        public ActionResult Reset(string password, string cpassword)
+        {
+            if (password != cpassword)
+            {
+                ViewBag.msg = "Password and Confirm Password didnt matched";
+                return View();
+            }
+            _connection.Open();
+            string checkKey = $"UPDATE Student SET password ='{password}' where id='{Session["user_id"]}';DELETE FROM Forget where user_id='{Session["user_id"]}';";
+            SqlCommand cmd2 = new SqlCommand(checkKey, _connection);
+            cmd2.ExecuteNonQuery();
+            Session["user_id"] = null;
+            ViewBag.msg = "Password Has been updated";
+            return RedirectToAction("login");
+        }
+
+
+
+
+
+
+    }
 }
