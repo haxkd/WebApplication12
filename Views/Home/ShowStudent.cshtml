@@ -1,0 +1,33 @@
+﻿@model IEnumerable<WebApplication12.Models.Student>
+
+
+
+<h1>All Students</h1>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>name</th>
+            <th>email</th>
+            <th>dob</th>
+            <th>update</th>
+            <th>delete</th>
+        </tr>
+    </thead>
+    <tbody>
+
+
+        @foreach (var student in Model)
+        {
+            <tr>
+                <td>@student.name</td>
+                <td>@student.email</td>
+                <td>@student.dob</td>
+                <td><a href="/Home/EditStudent/@student.id">Update</a></td>
+                <td><a href="/Home/DeleteStudent/@student.id">Delete</a></td>
+            </tr>
+
+        }
+
+    </tbody>
+</table>
