@@ -10,6 +10,11 @@ namespace WebApplication12.Controllers
         {
             return View();
         }
+        public ActionResult ShowStudent()
+        {
+            var student = _context.Students.ToList();
+            return View(student);
+        }
         public ActionResult EditStudent(int id)
         {
             var student = _context.Students.FirstOrDefault(y => y.id == id);
@@ -30,6 +35,15 @@ namespace WebApplication12.Controllers
             student.phone = updateModel.phone;
             _context.SaveChanges();
             return View(student);
+        }
+
+        public ActionResult DeleteStudent(int id)
+        {
+            var student = _context.Students.FirstOrDefault(y=>y.id==id);
+            _context.Students.Remove(student);
+            _context.SaveChanges();
+            TempData["msg"] = "Record Removed";
+            return RedirectToAction("ShowStudent");
         }
     }
 }

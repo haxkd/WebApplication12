@@ -77,3 +77,7 @@ C:\Users\Haxkd\source\repos\WebApplication12\obj\Debug\WebApplication12.csproj.C
 C:\Users\Haxkd\source\repos\WebApplication12\obj\Debug\WebApplication12.csproj.CopyComplete
 C:\Users\Haxkd\source\repos\WebApplication12\obj\Debug\WebApplication12.dll
 C:\Users\Haxkd\source\repos\WebApplication12\obj\Debug\WebApplication12.pdb
+C:\Users\Haxkd\source\repos\WebApplication12\bin\EntityFramework.dll
+C:\Users\Haxkd\source\repos\WebApplication12\bin\EntityFramework.SqlServer.dll
+C:\Users\Haxkd\source\repos\WebApplication12\bin\EntityFramework.xml
+C:\Users\Haxkd\source\repos\WebApplication12\bin\EntityFramework.SqlServer.xml
