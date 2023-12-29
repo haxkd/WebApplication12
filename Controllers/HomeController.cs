@@ -10,16 +10,19 @@ namespace WebApplication12.Controllers
         {
             return View();
         }
+        
         public ActionResult ShowStudent()
         {
             var student = _context.Students.ToList();
             return View(student);
         }
+        
         public ActionResult EditStudent(int id)
         {
             var student = _context.Students.FirstOrDefault(y => y.id == id);
             return View(student);
         }
+        
         [HttpPost]
         public ActionResult EditStudent(int id, UpdateModel updateModel)
         {
