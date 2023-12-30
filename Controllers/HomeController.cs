@@ -48,5 +48,6 @@ namespace WebApplication12.Controllers
             TempData["msg"] = "Record Removed";
             return RedirectToAction("ShowStudent");
         }
+        
     }
 }
