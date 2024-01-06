@@ -3,14 +3,15 @@ using System.Web.Mvc;
 using WebApplication12.Models;
 namespace WebApplication12.Controllers
 {
+
     public class HomeController : Controller
     {    
+    
         CrudEntities _context = new CrudEntities();
         public ActionResult Index()
         {
             return View();
         }
-        
         public ActionResult ShowStudent()
         {
             var student = _context.Students.ToList();
